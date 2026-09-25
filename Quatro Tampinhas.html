@@ -1,0 +1,507 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#faf9f5;color:#141413}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Quatro Tampinhas</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bowlby+One&family=Rubik:wght@500;700&display=swap">
+<style>
+  /* Tema único e claro de propósito: caixote de madeira com tampinhas de garrafa */
+  :root {
+    color-scheme: light;
+    --fundo: #e3efe8;
+    --tinta: #2a2420;
+    --suave: #6b625a;
+    --madeira: #c8894f;
+    --madeira2: #b87a42;
+    --madeira-escura: #7d4f26;
+    --buraco: #3b2616;
+    --vermelho: #e8453c;
+    --verde: #2fa84f;
+    --papel: #fffdf8;
+  }
+  html, body { min-height: 100%; }
+  body {
+    margin: 0;
+    background: var(--fundo);
+    color: var(--tinta);
+    font: 500 16px/1.45 "Rubik", system-ui, sans-serif;
+    padding-inline: 16px;
+    display: flex; justify-content: center;
+  }
+  .app { width: 100%; max-width: 560px; padding-block: 16px 28px; display: flex; flex-direction: column; gap: 12px; }
+  button, input { font: inherit; color: inherit; }
+
+  header { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
+  h1 { margin: 0; font: 30px/1 "Bowlby One", "Arial Black", sans-serif; letter-spacing: .01em; }
+  h1 .v { color: var(--vermelho); } h1 .g { color: var(--verde); }
+  .opcoes { display: flex; gap: 6px; flex-wrap: wrap; }
+  .grupo { display: flex; background: var(--papel); border: 2px solid var(--tinta); border-radius: 999px; padding: 2px; }
+  .grupo button { border: 0; background: none; border-radius: 999px; padding: 3px 11px; font-size: 13px; font-weight: 700; cursor: pointer; }
+  .grupo button[aria-pressed="true"] { background: var(--tinta); color: var(--papel); }
+  .grupo[hidden] { display: none; }
+
+  .jogadores { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .jogador {
+    background: var(--papel);
+    border: 2px solid var(--tinta);
+    border-radius: 14px;
+    padding: 8px 10px;
+    display: flex; align-items: center; gap: 10px;
+    min-width: 0;
+    transition: transform .2s, box-shadow .2s;
+  }
+  .jogador.vez { transform: translateY(-2px); }
+  .jogador.p0.vez { box-shadow: 0 4px 0 var(--vermelho); border-color: var(--vermelho); }
+  .jogador.p1.vez { box-shadow: 0 4px 0 var(--verde); border-color: var(--verde); }
+  .jogador svg { width: 34px; height: 34px; flex: none; }
+  .jogador .info { flex: 1; min-width: 0; }
+  .jogador input {
+    width: 100%; min-width: 0; padding: 0;
+    border: 0; border-bottom: 2px dashed transparent; background: none;
+    font-weight: 700; font-size: 18px;
+  }
+  .jogador input:focus { outline: none; border-bottom-color: var(--suave); }
+  .jogador input:disabled { opacity: 1; }
+  .jogador small { display: block; font-size: 12px; color: var(--suave); }
+
+  .caixote {
+    background: repeating-linear-gradient(0deg, var(--madeira) 0 34px, var(--madeira2) 34px 36px);
+    border-radius: 14px;
+    padding: 6px 8px 10px;
+    box-shadow: inset 0 0 0 3px var(--madeira-escura), 0 6px 0 var(--madeira-escura);
+  }
+  svg#tab { display: block; width: 100%; max-width: 100%; touch-action: manipulation; user-select: none; -webkit-user-select: none; cursor: pointer; }
+  .frente { fill: var(--madeira); }
+  .frente-borda { fill: none; stroke: var(--madeira-escura); stroke-width: 3; }
+  .buraco-fundo { fill: var(--buraco); }
+  .coluna-luz { fill: #fff; opacity: 0; transition: opacity .15s; }
+  .coluna-luz.on { opacity: .12; }
+  .vitoria-anel { fill: none; stroke: #fff; stroke-width: 7; animation: anel .8s ease-in-out infinite; }
+  @keyframes anel { 50% { stroke-opacity: .3; } }
+  .previa { transition: transform .12s ease-out, opacity .15s; }
+
+  .status { margin: 0; text-align: center; min-height: 2.9em; font-weight: 700; text-wrap: balance; }
+  .status .n0 { color: var(--vermelho); } .status .n1 { color: var(--verde); }
+
+  .acoes { display: flex; gap: 10px; flex-wrap: wrap; }
+  .btn {
+    flex: 1 1 120px; min-height: 46px;
+    border-radius: 12px;
+    border: 2px solid var(--tinta);
+    background: var(--papel);
+    font-weight: 700; font-size: 16px;
+    cursor: pointer;
+    box-shadow: 0 3px 0 var(--tinta);
+  }
+  .btn:active:not(:disabled) { transform: translateY(3px); box-shadow: none; }
+  .btn:disabled { opacity: .4; cursor: default; }
+  .btn.forte { background: var(--tinta); color: var(--papel); }
+  button:focus-visible, input:focus-visible { outline: 3px solid var(--vermelho); outline-offset: 3px; }
+
+  .regras { background: var(--papel); border: 2px dashed #c9d8cf; border-radius: 12px; padding: 10px 14px; color: var(--suave); font-size: 15px; }
+  .regras h2 { margin: 0 0 4px; font: 20px/1.1 "Bowlby One", "Arial Black", sans-serif; color: var(--tinta); }
+  .regras ul { margin: 0; padding-left: 20px; display: grid; gap: 3px; }
+  .regras b { color: var(--tinta); }
+
+  .fim { position: fixed; inset: 0; z-index: 10; display: grid; place-items: center; background: rgba(42,36,32,.4); padding: 16px; }
+  .cartao {
+    background: var(--papel); border: 3px solid var(--tinta); border-radius: 16px;
+    padding: 18px 20px; text-align: center; max-width: 330px; width: 100%;
+    box-shadow: 0 6px 0 var(--tinta);
+    animation: surge .35s cubic-bezier(.3,1.6,.5,1);
+  }
+  @keyframes surge { from { transform: scale(.6); opacity: 0; } }
+  .cartao h2 { margin: 0; font: 28px/1.1 "Bowlby One", "Arial Black", sans-serif; }
+  .cartao p { margin: 6px 0 14px; color: var(--suave); }
+  .cartao .lista { display: grid; gap: 8px; }
+
+  @media (max-width: 420px) {
+    h1 { font-size: 25px; }
+    .jogador { padding: 6px 8px; gap: 6px; }
+    .jogador svg { width: 28px; height: 28px; }
+    .jogador input { font-size: 16px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .vitoria-anel, .cartao { animation: none; }
+  }
+</style>
+
+<div class="app">
+  <header>
+    <h1>Quatro <span class="v">Tampi</span><span class="g">nhas</span></h1>
+    <div class="opcoes">
+      <div class="grupo" role="group" aria-label="Modo">
+        <button id="modo2" aria-pressed="true">2 jogadores</button>
+        <button id="modoCpu" aria-pressed="false">Computador</button>
+      </div>
+      <div class="grupo" id="grupoNivel" role="group" aria-label="Nível do computador" hidden>
+        <button data-nivel="facil" aria-pressed="true">Fácil</button>
+        <button data-nivel="dificil" aria-pressed="false">Difícil</button>
+      </div>
+    </div>
+  </header>
+
+  <div class="jogadores">
+    <div class="jogador p0" id="card0">
+      <svg viewBox="-50 -50 100 100" aria-hidden="true"><use href="#tampa0"/></svg>
+      <div class="info"><input id="nome0" value="Vermelho" maxlength="12" aria-label="Nome do jogador vermelho"><small id="extra0"></small></div>
+    </div>
+    <div class="jogador p1" id="card1">
+      <svg viewBox="-50 -50 100 100" aria-hidden="true"><use href="#tampa1"/></svg>
+      <div class="info"><input id="nome1" value="Verde" maxlength="12" aria-label="Nome do jogador verde"><small id="extra1"></small></div>
+    </div>
+  </div>
+
+  <div class="caixote">
+    <svg id="tab" viewBox="0 -110 700 720" aria-label="Caixote com 7 colunas e 6 linhas">
+      <defs>
+        <g id="tampa0"></g>
+        <g id="tampa1"></g>
+        <mask id="furos">
+          <rect x="0" y="0" width="700" height="600" fill="#fff"/>
+          <g id="furosMask"></g>
+        </mask>
+      </defs>
+      <g id="luzes"></g>
+      <g id="previa" class="previa"></g>
+      <g id="fundoBuracos"></g>
+      <g id="tampas"></g>
+      <rect class="frente" x="0" y="0" width="700" height="600" rx="18" mask="url(#furos)"/>
+      <g id="bordasFuros"></g>
+      <rect class="frente-borda" x="1.5" y="1.5" width="697" height="597" rx="17"/>
+      <g id="aneis"></g>
+    </svg>
+  </div>
+
+  <p class="status" id="status" aria-live="polite"></p>
+
+  <div class="acoes">
+    <button class="btn" id="btnDesfazer">Desfazer</button>
+    <button class="btn forte" id="btnNovo">Nova partida</button>
+  </div>
+
+  <div class="regras">
+    <h2>Como jogar</h2>
+    <ul>
+      <li>Na sua vez, <b>toque numa coluna</b>: a tampinha cai até o fundo.</li>
+      <li>Ganha quem alinhar <b>4 tampinhas</b> da mesma cor: deitadas, em pé ou na diagonal.</li>
+      <li>Fique de olho: às vezes a melhor jogada é <b>bloquear</b> o outro.</li>
+      <li><b>Desfazer:</b> cada jogador pode desfazer a própria jogada só <b>2 vezes por partida</b>, e nunca duas vezes seguidas.</li>
+    </ul>
+  </div>
+</div>
+
+<script>
+/* =========================================================
+   QUATRO TAMPINHAS — Lig 4 para 2 jogadores
+   HTML + CSS + JavaScript puro, desenhado em SVG.
+   ========================================================= */
+
+const COLS = 7, LINS = 6, T = 100;  // cada casa tem 100×100 no SVG
+const DESFAZER_MAX = 2;
+const $ = id => document.getElementById(id);
+
+/* ---------- Desenho da tampinha (borda serrilhada) ---------- */
+function tampinha(cor, clara) {
+  const pts = [];
+  for (let i = 0; i < 42; i++) {
+    const a = (i / 42) * Math.PI * 2, r = i % 2 ? 40 : 44;
+    pts.push((r * Math.cos(a)).toFixed(1) + "," + (r * Math.sin(a)).toFixed(1));
+  }
+  return `<polygon points="${pts.join(" ")}" fill="${cor}" stroke="rgba(0,0,0,.35)" stroke-width="2"/>
+    <circle r="33" fill="${clara}"/><circle r="33" fill="none" stroke="rgba(0,0,0,.15)" stroke-width="3"/>
+    <circle r="24" fill="${cor}" opacity=".35"/>
+    <path d="M-20 -18 A28 28 0 0 1 8 -28" fill="none" stroke="#fff" stroke-width="5" stroke-linecap="round" opacity=".55"/>`;
+}
+$("tampa0").innerHTML = tampinha("#e8453c", "#f26a5f");
+$("tampa1").innerHTML = tampinha("#2fa84f", "#4cc26b");
+
+/* ---------- Tabuleiro fixo ---------- */
+(function () {
+  let furos = "", fundos = "", bordas = "", luzes = "";
+  for (let c = 0; c < COLS; c++) {
+    luzes += `<rect class="coluna-luz" id="luz${c}" x="${c * T + 4}" y="-100" width="${T - 8}" height="696" rx="14"/>`;
+    for (let r = 0; r < LINS; r++) {
+      const x = c * T + 50, y = r * T + 50;
+      furos += `<circle cx="${x}" cy="${y}" r="40" fill="#000"/>`;
+      fundos += `<circle class="buraco-fundo" cx="${x}" cy="${y}" r="41"/>`;
+      bordas += `<circle cx="${x}" cy="${y}" r="40" fill="none" stroke="#7d4f26" stroke-width="3"/>`;
+    }
+  }
+  $("furosMask").innerHTML = furos;
+  $("fundoBuracos").innerHTML = fundos;
+  $("bordasFuros").innerHTML = bordas;
+  $("luzes").innerHTML = luzes;
+})();
+
+/* ---------- Estado ----------
+   grade[c][r]: -1 vazio, 0 vermelho, 1 verde. r = 0 é a linha de baixo. */
+let modoCpu = false, nivelCpu = "facil", vitorias = [0, 0], quemComeca = 0, jogo;
+try {
+  const s = JSON.parse(localStorage.getItem("quatroTampinhas"));
+  if (s) { vitorias = s.vitorias || vitorias; $("nome0").value = s.nomes?.[0] || "Vermelho"; $("nome1").value = s.nomes?.[1] || "Verde"; }
+} catch {}
+function salvar() { try { localStorage.setItem("quatroTampinhas", JSON.stringify({ vitorias, nomes: [$("nome0").value, $("nome1").value] })); } catch {} }
+
+function novaPartida() {
+  document.querySelector(".fim")?.remove();
+  jogo = {
+    grade: Array.from({ length: COLS }, () => Array(LINS).fill(-1)),
+    alturas: Array(COLS).fill(0),
+    vez: quemComeca,
+    historico: [],
+    desfazeres: [DESFAZER_MAX, DESFAZER_MAX],
+    acabouDeDesfazer: false,
+    fim: false, vencedor: -1, linhaVitoria: [],
+    caindo: false,
+  };
+  $("tampas").innerHTML = "";
+  $("aneis").innerHTML = "";
+  desenhar();
+  agendarCpu();
+}
+
+/* ---------- Quatro em linha? ----------
+   A partir da última tampinha, conta para os dois lados em cada direção. */
+function linhaDe4(grade, c, r) {
+  const p = grade[c][r];
+  for (const [dc, dr] of [[1, 0], [0, 1], [1, 1], [1, -1]]) {
+    const linha = [[c, r]];
+    for (const s of [1, -1]) {
+      let x = c + dc * s, y = r + dr * s;
+      while (x >= 0 && x < COLS && y >= 0 && y < LINS && grade[x][y] === p) { linha.push([x, y]); x += dc * s; y += dr * s; }
+    }
+    if (linha.length >= 4) return linha;
+  }
+  return null;
+}
+
+/* ---------- Jogar ---------- */
+function soltar(c) {
+  if (jogo.fim || jogo.caindo || jogo.alturas[c] >= LINS) return;
+  const r = jogo.alturas[c], p = jogo.vez;
+  jogo.historico.push({ c, autor: p });
+  jogo.acabouDeDesfazer = false;
+  jogo.grade[c][r] = p;
+  jogo.alturas[c]++;
+  jogo.caindo = true;
+  animarQueda(c, r, p, () => {
+    jogo.caindo = false;
+    const linha = linhaDe4(jogo.grade, c, r);
+    if (linha) return terminar(p, linha);
+    if (jogo.alturas.every(h => h >= LINS)) return terminar(-1, []);
+    jogo.vez = 1 - p;
+    desenhar();
+    agendarCpu();
+  });
+  desenhar();
+}
+
+function animarQueda(c, r, p, fim) {
+  const g = document.createElementNS("http://www.w3.org/2000/svg", "g");
+  g.innerHTML = `<use href="#tampa${p}"/>`;
+  g.id = `t${c}-${r}`;
+  const x = c * T + 50, yFinal = (LINS - 1 - r) * T + 50;
+  g.setAttribute("transform", `translate(${x} ${yFinal})`);
+  $("tampas").appendChild(g);
+  const semAnim = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const dist = yFinal + 60;
+  const anim = g.animate(
+    [{ transform: `translate(${x}px, -60px)` }, { transform: `translate(${x}px, ${yFinal}px)`, offset: .75 },
+     { transform: `translate(${x}px, ${yFinal - Math.min(18, dist * .05)}px)`, offset: .87 }, { transform: `translate(${x}px, ${yFinal}px)` }],
+    { duration: semAnim ? 1 : 260 + dist * 0.45, easing: "ease-in" });
+  anim.onfinish = fim;
+}
+
+/* ---------- Desfazer com limite ---------- */
+function quemDesfaz() {
+  if (jogo.fim || jogo.caindo || jogo.acabouDeDesfazer || !jogo.historico.length) return -1;
+  if (modoCpu) return jogo.vez === 0 && jogo.historico.some(h => h.autor === 0) ? 0 : -1;
+  return jogo.historico[jogo.historico.length - 1].autor;
+}
+function tirarUltima() {
+  const { c } = jogo.historico.pop();
+  jogo.alturas[c]--;
+  const r = jogo.alturas[c];
+  jogo.grade[c][r] = -1;
+  $(`t${c}-${r}`)?.remove();
+}
+function desfazer() {
+  const autor = quemDesfaz();
+  if (autor < 0 || jogo.desfazeres[autor] <= 0) return;
+  if (modoCpu) { while (jogo.historico.length && jogo.historico[jogo.historico.length - 1].autor !== 0) tirarUltima(); }
+  tirarUltima();
+  jogo.vez = autor;
+  jogo.desfazeres[autor]--;
+  jogo.acabouDeDesfazer = true;
+  desenhar();
+}
+
+/* ---------- Computador (minimax com poda alfa-beta) ----------
+   Ele imagina as próximas jogadas dos dois lados e dá uma nota
+   para cada tabuleiro: 3 em linha com espaço livre vale muito,
+   2 em linha vale pouco, e a coluna do meio é a mais valiosa. */
+function agendarCpu() {
+  if (modoCpu && !jogo.fim && jogo.vez === 1) setTimeout(jogadaCpu, 450);
+}
+function notaJanela(v, eu) {
+  const meus = v.filter(x => x === eu).length, deles = v.filter(x => x === 1 - eu).length, vazios = v.filter(x => x === -1).length;
+  if (meus === 3 && vazios === 1) return 50;
+  if (meus === 2 && vazios === 2) return 8;
+  if (deles === 3 && vazios === 1) return -60;
+  if (deles === 2 && vazios === 2) return -6;
+  return 0;
+}
+function avaliar(g, eu) {
+  let nota = 0;
+  for (let r = 0; r < LINS; r++) nota += (g[3][r] === eu ? 6 : g[3][r] === 1 - eu ? -6 : 0);
+  for (let c = 0; c < COLS; c++) for (let r = 0; r < LINS; r++)
+    for (const [dc, dr] of [[1, 0], [0, 1], [1, 1], [1, -1]]) {
+      const c3 = c + dc * 3, r3 = r + dr * 3;
+      if (c3 >= COLS || r3 < 0 || r3 >= LINS) continue;
+      nota += notaJanela([g[c][r], g[c + dc][r + dr], g[c + 2 * dc][r + 2 * dr], g[c3][r3]], eu);
+    }
+  return nota;
+}
+const ORDEM = [3, 2, 4, 1, 5, 0, 6];
+function minimax(g, h, prof, alfa, beta, vez, eu) {
+  let melhorCol = ORDEM.find(c => h[c] < LINS);
+  if (melhorCol === undefined) return [0, -1];
+  if (prof === 0) return [avaliar(g, eu), melhorCol];
+  let melhor = vez === eu ? -Infinity : Infinity;
+  for (const c of ORDEM) {
+    if (h[c] >= LINS) continue;
+    const r = h[c];
+    g[c][r] = vez; h[c]++;
+    let nota;
+    if (linhaDe4(g, c, r)) nota = (vez === eu ? 1 : -1) * (100000 + prof);
+    else nota = minimax(g, h, prof - 1, alfa, beta, 1 - vez, eu)[0];
+    g[c][r] = -1; h[c]--;
+    if (vez === eu ? nota > melhor : nota < melhor) { melhor = nota; melhorCol = c; }
+    if (vez === eu) alfa = Math.max(alfa, nota); else beta = Math.min(beta, nota);
+    if (alfa >= beta) break;
+  }
+  return [melhor, melhorCol];
+}
+function jogadaCpu() {
+  if (jogo.fim || jogo.vez !== 1 || jogo.caindo) return;
+  const g = jogo.grade.map(col => col.slice()), h = jogo.alturas.slice();
+  let col;
+  if (nivelCpu === "facil" && Math.random() < 0.35) {
+    const livres = ORDEM.filter(c => h[c] < LINS);
+    col = livres[Math.floor(Math.random() * livres.length)];
+  } else {
+    col = minimax(g, h, nivelCpu === "facil" ? 2 : 6, -Infinity, Infinity, 1, 1)[1];
+  }
+  soltar(col);
+}
+
+/* ---------- Fim ---------- */
+function terminar(vencedor, linha) {
+  jogo.fim = true;
+  jogo.vencedor = vencedor;
+  jogo.linhaVitoria = linha;
+  if (vencedor >= 0) vitorias[vencedor]++;
+  quemComeca = 1 - quemComeca;
+  salvar();
+  $("aneis").innerHTML = linha.map(([c, r]) => `<circle class="vitoria-anel" cx="${c * T + 50}" cy="${(LINS - 1 - r) * T + 50}" r="42"/>`).join("");
+  desenhar();
+  setTimeout(() => {
+    const el = document.createElement("div");
+    el.className = "fim";
+    const nome = vencedor >= 0 ? escapar($("nome" + vencedor).value || (vencedor ? "Verde" : "Vermelho")) : "";
+    el.innerHTML = `<div class="cartao" role="dialog" aria-label="Fim de partida">
+      <h2 style="color:${vencedor === 0 ? "var(--vermelho)" : vencedor === 1 ? "var(--verde)" : "var(--tinta)"}">${vencedor >= 0 ? `${nome} venceu!` : "Empate!"}</h2>
+      <p>${vencedor >= 0 ? "Quatro em linha!" : "O caixote encheu e ninguém fez quatro."} Vitórias: ${vitorias[0]} × ${vitorias[1]}</p>
+      <div class="lista">
+        <button class="btn forte" id="revanche">Revanche</button>
+        <button class="btn" id="verCaixote">Ver o caixote</button>
+      </div>
+    </div>`;
+    document.body.appendChild(el);
+    $("revanche").onclick = novaPartida;
+    $("verCaixote").onclick = () => el.remove();
+    $("revanche").focus();
+  }, 900);
+}
+
+/* ---------- Painel ---------- */
+const escapar = t => t.replace(/[&<>"]/g, ch => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[ch]));
+const vezHumana = () => !jogo.fim && !jogo.caindo && !(modoCpu && jogo.vez === 1);
+function desenhar() {
+  [0, 1].forEach(p => {
+    $("card" + p).classList.toggle("vez", !jogo.fim && jogo.vez === p);
+    $("extra" + p).textContent = `${vitorias[p]} ${vitorias[p] === 1 ? "vitória" : "vitórias"} · ${jogo.desfazeres[p]} ↶`;
+  });
+  const autor = quemDesfaz();
+  const restam = autor >= 0 ? jogo.desfazeres[autor] : 0;
+  $("btnDesfazer").disabled = autor < 0 || restam <= 0;
+  $("btnDesfazer").textContent = autor >= 0 ? `Desfazer (${restam})` : "Desfazer";
+  const nome = p => `<span class="n${p}">${escapar($("nome" + p).value || (p ? "Verde" : "Vermelho"))}</span>`;
+  const livres = COLS * LINS - jogo.historico.length;
+  $("status").innerHTML = jogo.fim ? (jogo.vencedor >= 0 ? `${nome(jogo.vencedor)} fez quatro em linha!` : "Empate!")
+    : modoCpu && jogo.vez === 1 ? `${nome(1)} está pensando…`
+    : `Vez de ${nome(jogo.vez)} · ${livres} espaços livres`;
+  if (!vezHumana()) mostrarPrevia(-1);
+}
+
+/* ---------- Toque e mouse ---------- */
+const svg = $("tab");
+let colunaAtual = -1;
+function colunaDo(e) {
+  const p = svg.createSVGPoint(); p.x = e.clientX; p.y = e.clientY;
+  const q = p.matrixTransform(svg.getScreenCTM().inverse());
+  const c = Math.floor(q.x / T);
+  return c >= 0 && c < COLS ? c : -1;
+}
+function mostrarPrevia(c) {
+  colunaAtual = c;
+  for (let k = 0; k < COLS; k++) $("luz" + k).classList.toggle("on", k === c);
+  const g = $("previa");
+  if (c < 0 || !vezHumana() || jogo.alturas[c] >= LINS) { g.style.opacity = 0; return; }
+  g.innerHTML = `<use href="#tampa${jogo.vez}"/>`;
+  g.style.opacity = .9;
+  g.style.transform = `translate(${c * T + 50}px, -58px)`;
+}
+svg.addEventListener("pointermove", e => { if (e.pointerType === "mouse") { const c = colunaDo(e); if (c !== colunaAtual) mostrarPrevia(c); } });
+svg.addEventListener("pointerleave", () => mostrarPrevia(-1));
+svg.addEventListener("click", e => {
+  if (!vezHumana()) return;
+  const c = colunaDo(e);
+  if (c >= 0) { soltar(c); if (e.pointerType === "mouse") setTimeout(() => mostrarPrevia(c), 50); }
+});
+// Teclado: números 1 a 7 soltam na coluna
+addEventListener("keydown", e => {
+  if (document.activeElement?.tagName === "INPUT") return;
+  const n = +e.key;
+  if (n >= 1 && n <= COLS && vezHumana()) soltar(n - 1);
+});
+
+/* ---------- Botões ---------- */
+$("btnNovo").onclick = novaPartida;
+$("btnDesfazer").onclick = desfazer;
+function definirModo(cpu) {
+  modoCpu = cpu;
+  $("modo2").setAttribute("aria-pressed", !cpu);
+  $("modoCpu").setAttribute("aria-pressed", cpu);
+  $("grupoNivel").hidden = !cpu;
+  if (cpu) $("nome1").value = "Computador";
+  else if ($("nome1").value === "Computador") $("nome1").value = "Verde";
+  $("nome1").disabled = cpu;
+  vitorias = [0, 0]; quemComeca = 0;
+  salvar();
+  novaPartida();
+}
+$("modo2").onclick = () => definirModo(false);
+$("modoCpu").onclick = () => definirModo(true);
+document.querySelectorAll("[data-nivel]").forEach(b => b.onclick = () => {
+  nivelCpu = b.dataset.nivel;
+  document.querySelectorAll("[data-nivel]").forEach(x => x.setAttribute("aria-pressed", x === b));
+  vitorias = [0, 0];
+  novaPartida();
+});
+["nome0", "nome1"].forEach(id => $(id).addEventListener("input", () => { salvar(); desenhar(); }));
+
+novaPartida();
+</script>
+
+</body></html>
